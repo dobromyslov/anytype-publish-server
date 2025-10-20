@@ -1,0 +1,32 @@
+services:
+  mongo:
+    image: mongo:8.0.15
+    container_name: mongo-anytype-publish-server
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: admin
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./volumes/mongo-data:/data/db
+      - ./volumes/mongo-init-scripts:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-anytype-publish-server
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck: # https://stackoverflow.com/a/71504657
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 1s
+      timeout: 3s
+      retries: 10
